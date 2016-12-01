@@ -6,9 +6,9 @@ Requirements:
 
   * OpenROAD
   * Under Windows
-      * CPython along with the Python extensions for Windows (pywin32)
+      * CPython 2.7 along with the Python extensions for Windows (pywin32)
   * Under Linux/Unix
-      * Jython/Java along with either II_SYSTEM set or openroad.jar in classpath
+      * Jython 2.7 (and Java) along with either II_SYSTEM set or openroad.jar in classpath
 
 
 To run tests against a default install of the OpenROAD install issue:
