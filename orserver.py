@@ -89,7 +89,7 @@ if win32com_client_Dispatch is None:
         # assume/hope jdbc driver is in the current directory
         openroad_jar_path = os.path.join('openroad.jar')
 
-    print openroad_jar_path
+    print(openroad_jar_path)
     jarLoad = classPathHacker()
     a = jarLoad.addFile(openroad_jar_path)
 
