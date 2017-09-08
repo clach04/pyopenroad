@@ -648,18 +648,119 @@ else:
 
 # TODO Make Python Class wrappers for rso and pdo (following pep8?)
 
-def or_connect(w4gl_image, appserver_hostname, connection_mode=None, rptype=None):
-    """Sample connection_mode settings:
-        connection_mode = None
+def or_connect(w4gl_image, appserver_hostname, connection_mode=None, rptype=None, startflags=None):
+    """Parameters compared with 4gl Initiate()
+
+    w4gl_image == image/imagepath
+    appserver_hostname == location/locationname
+    connection_mode == routingstring
+    rptype == type/rptype
+    startflags == flags/startflags
+
+    Sample connection_mode settings:
+        connection_mode = None  -- use connect) rather than initiate()
         connection_mode = ''
         connection_mode = 'unauthenticated'
         connection_mode = 'compressed'
         connection_mode = 'unauthenticated-compressed'
 
         rptype = RP_SHARED  # etc.
+
+    From Server Guide:
+
+    Initiate Method
+    The Initiate method connects to an appropriate server process that hosts the specified
+    OpenROAD application image. An Initiate must be done once-and only once-prior to
+    using the Call4GL method.
+    This method has the following syntax:
+        integer = RemoteServer.Initiate(image = imagepath, type = rptype
+        [, flags = startflags][ , location = locationname ]
+        [ , routing = routingstring])
+
+    imagepath
+    Specifies the OpenROAD image file to be loaded
+
+    rptype
+    Specifies one of the following types:
+
+    * RP_LOCAL
+    * RP_PRIVATE
+    * RP_SHARED
+
+    The RP_LOCAL type is useful for development and debugging. When initiated in
+    RP_LOCAL mode, all Call4GL calls on the RemoteServer object are forwarded to a local
+    instance of the named 4GL procedure (within the current application or its included
+    applications) and not sent to an OpenROAD Server.
+
+    startflags
+    Specifies a string containing OpenROAD application startup flags
+
+    locationname
+    Identifies the location where the OpenROAD Server is started
+
+    routingstring
+    Specifies one of the following values:
+
+    empty string (no value)
+    Specifies that COM or DCOM will be used to communicate from the client to the
+    OpenROAD Server. The parameters passed when the Call4GL/CallProc method is
+    invoked are encoded as COM SAFEARRAYs and are passed ByValue and
+    ByReference from the client to the OpenROAD Server.
+    These SAFEARRAY parameters are marshaled from the client to the OpenROAD
+    Server Pooler over COM/DCOM. In the OpenROAD Server Pooler the parameters
+    are re-materialized temporarily and examined to determine how to route the
+    request to the appropriate OpenROAD Server Slave process. The request is then
+    marshaled again into COM SAFEARRAYs and passed by COM/DCOM to the
+    appropriate OpenROAD Server Slave process.
+    In the OpenROAD Server Slave process, the marshaled parameters are
+    materialized into OpenROAD variables and control is passed to OpenROAD Runtime
+    in the OpenROAD Server Slave process.
+
+    unauthenticated
+    Specifies that COM or DCOM will be used to communicate from the client to the
+    OpenROAD Server. The client can, however, be an ANONYMOUS user.
+    unauthenticated-compressed
+    Specifies that COM or DCOM will be used to communicate from the client to the
+    OpenROAD Server. When this value is passed, the client can be ANONYMOUS and
+    will use a more efficient method of passing the parameters from the client to the
+    OpenROAD Server. For more information, see the following description about the
+    compressed value.
+
+    compressed
+    Specifies that COM or DCOM will be used to communicate from the client to the
+    OpenROAD Server. When this value is passed, a more efficient technique is used to
+    pass parameters when the Call4GL/CallProc method is invoked from the client to
+    the OpenROAD Server.
+
+    When the Call4GL method is invoked, the client initially builds a set of COM
+    SAFEARRAYs used to encapsulate the parameters. A binary string is generated
+    from the SAFEARRAYs, implementing a simple encoding and compression of the
+    parameters. DCOM sends this binary string to the OpenROAD Server. There, the
+    string is not decoded; only the header is examined to determine how the
+    parameters should be routed to the correct destination. The binary string is then
+    routed to the appropriate OpenROAD Server Slave process through COM/DCOM. In
+    the OpenROAD Server Slave, the binary string is decoded and used to populate the
+    4GL variables that the Service Call Procedure then processes.
+    Using the compressed method, you can achieve significant reductions in the total
+    number of bytes passed by COM/DCOM. These numbers are typically in the range
+    of 40% to 80% depending on the data content of the parameters being passed
+    from the client to the OpenROAD Server.
+
+    http
+    Specifies that HTTP will be used to communicate from the client to a .NET or Java
+    OpenROAD Server Gatekeeper. The request is always passed as compressed when
+    using HTTP transport. The OpenROAD Server Gatekeeper examines the binary
+    string and then passes it by DCOM to the OpenROAD Server Pooler for processing.
+    The string passed is always a compressed string.
+
+    Note: If the Initiate method is invoked directly to make a connection, the Name Server is
+    bypassed. To use the Name Server from an OpenROAD client, see uc_name_server_client
+    Class.
     """
 
     rptype = rptype or 0
+    startflags = startflags or '-Tyes -L%s.log' % w4gl_image
+
     rso = get_rso()
     if connection_mode is None:
         # Connect directly to OpenROAD Server without using Name Server
@@ -689,7 +790,7 @@ def or_connect(w4gl_image, appserver_hostname, connection_mode=None, rptype=None
         if connection_mode != 'http' and not w4gl_image_filename.lower().endswith('.img'):
             # if using http use AKA name (i.e. name) not the filename.
             w4gl_image_filename = w4gl_image_filename + '.img'
-        rso_initiate(rso, w4gl_image_filename, '-Tyes -L%s.log' % w4gl_image, appserver_hostname, connection_mode, rptype)
+        rso_initiate(rso, w4gl_image_filename, startflags, appserver_hostname, connection_mode, rptype)
     return rso
 
 def callproc(rso, procedure_name, func_sig=None, **kwargs):
