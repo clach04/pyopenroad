@@ -101,6 +101,11 @@ if win32com_client_Dispatch is None:
     from com.ca.openroad import COMException
 
 
+RP_LOCAL = 1  # Probably only useful for OpenROAD clients, here for completeness
+RP_PRIVATE = 2
+RP_SHARED = 3
+
+
 class AppServerError(Exception):
     """Base OpenROAD AppServer Exception"""
 
@@ -643,15 +648,18 @@ else:
 
 # TODO Make Python Class wrappers for rso and pdo (following pep8?)
 
-def or_connect(w4gl_image, appserver_hostname, connection_mode=None):
+def or_connect(w4gl_image, appserver_hostname, connection_mode=None, rptype=None):
     """Sample connection_mode settings:
         connection_mode = None
         connection_mode = ''
         connection_mode = 'unauthenticated'
         connection_mode = 'compressed'
         connection_mode = 'unauthenticated-compressed'
+
+        rptype = RP_SHARED  # etc.
     """
 
+    rptype = rptype or 0
     rso = get_rso()
     if connection_mode is None:
         # Connect directly to OpenROAD Server without using Name Server
@@ -677,12 +685,11 @@ def or_connect(w4gl_image, appserver_hostname, connection_mode=None):
                     raise
     else:
         # Connect to OpenROAD Server using Name Server
-        connection_mode_num = 0
         w4gl_image_filename = w4gl_image
         if connection_mode != 'http' and not w4gl_image_filename.lower().endswith('.img'):
             # if using http use AKA name (i.e. name) not the filename.
             w4gl_image_filename = w4gl_image_filename + '.img'
-        rso_initiate(rso, w4gl_image_filename, '-Tyes -L%s.log' % w4gl_image, appserver_hostname, connection_mode, connection_mode_num)
+        rso_initiate(rso, w4gl_image_filename, '-Tyes -L%s.log' % w4gl_image, appserver_hostname, connection_mode, rptype)
     return rso
 
 def callproc(rso, procedure_name, func_sig=None, **kwargs):
