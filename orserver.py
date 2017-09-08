@@ -678,7 +678,11 @@ def or_connect(w4gl_image, appserver_hostname, connection_mode=None):
     else:
         # Connect to OpenROAD Server using Name Server
         connection_mode_num = 0
-        rso_initiate(rso, w4gl_image + '.img', '-Tyes -L%s.log' % w4gl_image, appserver_hostname, connection_mode, connection_mode_num)
+        w4gl_image_filename = w4gl_image
+        if connection_mode != 'http' and not w4gl_image_filename.lower().endswith('.img'):
+            # if using http use AKA name (i.e. name) not the filename.
+            w4gl_image_filename = w4gl_image_filename + '.img'
+        rso_initiate(rso, w4gl_image_filename, '-Tyes -L%s.log' % w4gl_image, appserver_hostname, connection_mode, connection_mode_num)
     return rso
 
 def callproc(rso, procedure_name, func_sig=None, **kwargs):
