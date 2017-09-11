@@ -105,6 +105,11 @@ RP_LOCAL = 1  # Probably only useful for OpenROAD clients, here for completeness
 RP_PRIVATE = 2
 RP_SHARED = 3
 
+try:
+    unicode
+except NameError:
+    # probably Python 3
+    unicode = str
 
 class AppServerError(Exception):
     """Base OpenROAD AppServer Exception"""
