@@ -659,11 +659,11 @@ def or_connect(w4gl_image, appserver_hostname, connection_mode=None, rptype=None
     w4gl_image == image/imagepath
     appserver_hostname == location/locationname
     connection_mode == routingstring
-    rptype == type/rptype
-    startflags == flags/startflags
+    rptype == type/rptype (not used when connection_mode=None)
+    startflags == flags/startflags (not used when connection_mode=None)
 
     Sample connection_mode settings:
-        connection_mode = None  -- use connect) rather than initiate()
+        connection_mode = None  -- use connect() without using Name Server rather than initiate()
         connection_mode = ''
         connection_mode = 'unauthenticated'
         connection_mode = 'compressed'
